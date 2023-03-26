@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 # period of the sequence is p
 # k is an additional factor for each number in the series
 # lookback is the length of the sequence for each training step
-n = 100
+n = 1000
 p = 4
 k = 0
 lookback = 10
@@ -38,7 +38,7 @@ train_size = len(train_data_x)
 # n_qubits = 0 means we use a classical LSTM
 # backend only for QLSTM relevant
 # for batch size = 1 the results are great, batch size = 2 already does not work
-hidden_dim = 4
+hidden_dim = 8
 num_layers = 2
 n_qubits = 0
 n_epochs = 50
@@ -63,7 +63,7 @@ model = LSTMTagger(
 # calculate number of batches, depending on the lenght of train data and the batch size
 num_batches = int(train_size / batch_size) - 1
 
-loss_function = nn.MSELoss()
+loss_function = nn.MSELoss(reduction="mean")
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 history = {"loss": [], "acc": []}
@@ -86,6 +86,7 @@ for epoch in range(n_epochs):
         # Tensors
         input = torch.tensor(x, dtype=torch.float32)
         labels = torch.tensor(y, dtype=torch.float32)
+        labels = labels.reshape(labels.shape[0],labels.shape[1])
 
         # Step 3. Run our forward pass.
         prediction = model(input)
@@ -97,9 +98,9 @@ for epoch in range(n_epochs):
         optimizer.step()
         losses.append(float(loss))
 
-    probs = torch.tensor(list(prediction))
-    preds.append(probs)
-    targets.append(labels)
+        probs = torch.tensor(list(prediction))
+        preds.append(probs)
+        targets.append(labels)
 
     avg_loss = np.mean(losses)
     history["loss"].append(avg_loss)
